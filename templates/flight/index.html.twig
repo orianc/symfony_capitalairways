@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Flight index
+{% endblock %}
+
+{% block body %}
+	<div class="container bg-light rounded py-3">
+		<h1 class="text-center">Flights Operate</h1>
+		<a class="btn btn-info my-2" href="{{ path('flight_new') }}">Create new flight</a>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Id</th>
+					<th>Numero</th>
+					<th>Schedule</th>
+					<th>Price</th>
+					<th>Reduction</th>
+					<th>Seat</th>
+					<th>Departure</th>
+					<th>Arrival</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for flight in flights %}
+					<tr>
+						<td>{{ flight.id }}</td>
+						<td>{{ flight.numero }}</td>
+						<td>{{ flight.schedule ? flight.schedule|date('H:i:s') : '' }}</td>
+						<td>{{ flight.price }}</td>
+						<td>{{ flight.reduction ? 'Yes' : 'No' }}</td>
+						<td>{{ flight.seat }}</td>
+						<td>{{ flight.departure.name }}</td>
+						<td>{{ flight.arrival.name }}</td>
+
+						<td>
+							<a class="btn btn-success" href="{{ path('flight_show', {'id': flight.id}) }}">Show</a>
+							<a class="btn btn-warning text-white" href="{{ path('flight_edit', {'id': flight.id}) }}">Edit</a>
+							{{ include('flight/_delete_form.html.twig') }}
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="7">no records found</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+
+	</div>
+{% endblock %}

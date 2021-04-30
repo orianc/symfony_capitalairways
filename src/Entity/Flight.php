@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\FlightRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bundle\MakerBundle\Str;
+use App\Repository\FlightRepository;
 
 /**
  * @ORM\Entity(repositoryClass=FlightRepository::class)
@@ -18,12 +20,15 @@ class Flight
     private $id;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="string")
      */
     private $numero;
 
     /**
      * @ORM\Column(type="time")
+     * 
+     * @Assert\NotBlank(message="Entrez un prix")
+     * 
      */
     private $schedule;
 
@@ -46,20 +51,29 @@ class Flight
     /**
      * @ORM\ManyToOne(targetEntity=City::class, inversedBy="arrival")
      * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotEqualTo(
+     *                      propertyPath="departure",
+     *                      message="Attention ! Le départ et l'arrivée doivent être différent !")
      */
     private $arrival;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     * @Assert\Range(min=1, max=200)
+     */
+    private $seat;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getNumero(): ?int
+    public function getNumero(): ?string
     {
         return $this->numero;
     }
 
-    public function setNumero(int $numero): self
+    public function setNumero(string $numero): self
     {
         $this->numero = $numero;
 
@@ -126,5 +140,15 @@ class Flight
         return $this;
     }
 
+    public function getSeat(): ?int
+    {
+        return $this->seat;
+    }
 
+    public function setSeat(?int $seat): self
+    {
+        $this->seat = $seat;
+
+        return $this;
+    }
 }

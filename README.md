@@ -10,6 +10,9 @@
   - [3.1. Database](#31-database)
   - [3.2. Entity Flight / City & Relation](#32-entity-flight--city--relation)
   - [3.3. Fixtures](#33-fixtures)
+  - [3.4. Modification](#34-modification)
+    - [3.4.1. Entité Flight](#341-entité-flight)
+  - [3.5. Création et gestion du CRUD de `Flight`](#35-création-et-gestion-du-crud-de-flight)
 
 
 
@@ -114,3 +117,77 @@ $flight1
 
 Je le remplis avec `->setDeparture($tabCityObj[1])` qui fait référence à un des objets de mon tableau d'objet city créé precedemment.
  
+## 3.4. Modification
+### 3.4.1. Entité Flight
+- On va ajouter un attribut `seat` et faire une nouvelle migration pour maj l'entité et ses attributs dans la DB. Si besoin on supprimera l'ancienne version de migrations.
+
+```bash
+symfony console make:entity <Flight> <seat> <int> <nullable:true>
+symfony console make:migration
+symfony console doctrine:migrations:migrate
+```
+
+- Modification des fixtures :
+  - On alimente `->setSeat(200)`.
+  - **Travail de boucle** : Ajout d'autre vols. Pour le moment le n° de vol et le schedule reste les mêmes.
+
+```php
+
+  for ($i = 0; $i < 5; $i++) {
+      $flight = new Flight();
+      $flight
+          ->setNumero('AV12' . $i)
+          ->setSchedule(\DateTime::createFromFormat('h:i', '00:00'))
+          ->setPrice(mt_rand(100, 300))
+          ->setReduction(false)
+          ->setDeparture($tabCityObj[$i])
+          ->setArrival($tabCityObj[$i + 1])
+          ->setSeat(mt_rand(100, 200));
+
+      $manager->persist($flight);
+  }
+```
+
+## 3.5. Création et gestion du CRUD de `Flight`
+
+1. On tape la commande `symfony console make:crud` qui facilite bien la vie...
+
+```bash
+ created: src/Controller/FlightController.php
+ created: src/Form/FlightType.php
+ created: templates/flight/_delete_form.html.twig
+ created: templates/flight/_form.html.twig
+ created: templates/flight/edit.html.twig
+ created: templates/flight/index.html.twig
+ created: templates/flight/new.html.twig
+ created: templates/flight/show.html.twig
+```
+
+2. Gérer la class `Form/FlightType.php`
+
+   - Tous les champs ne sont pas requis.
+   - Gérer la relation avec `City` dans le FormType.
+   - Ajouter les contraintes
+
+3. Personnaliser le résultat
+
+Faire appel à Bootstrap
+Pour personnaliser les champs, Form Types Reference :
+https://symfony.com/doc/current/reference/forms/types.html
+
+4. On créé une classe `App\Services\FlightService`
+
+Le service attribura un numero de vol lors de la création d'un vol.
+  
+  1. Utilisation pour les Fixtures
+- On ne peux pas injecter directement dans la méthode `load()`
+- Passer par un `__consctuct`
+- Dans la méthode `load()` on injecte le service 
+
+```php
+    function __construct(FlightService $fs)
+    {
+        $this->flightService = $fs;    
+    }
+
+```

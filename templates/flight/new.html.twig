@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Flight
+{% endblock %}
+
+{% block body %}
+
+
+	<div class="container  bg-light rounded py-3">
+	{% for label, message in app.flashes('success') %}
+		<div class="alert alert-success my-3 ">
+			{{ message }}
+		</div>
+	{% endfor %}
+		<h1>Create new Flight</h1>
+
+		{{ include('flight/_form.html.twig') }}
+
+		<a href="{{ path('flight_index') }}" class="btn btn-primary">Back to list</a>
+	</div>
+{% endblock %}
