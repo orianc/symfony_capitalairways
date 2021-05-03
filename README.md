@@ -12,7 +12,12 @@
   - [3.3. Fixtures](#33-fixtures)
   - [3.4. Modification](#34-modification)
     - [3.4.1. Entité Flight](#341-entité-flight)
-  - [3.5. Création et gestion du CRUD de `Flight`](#35-création-et-gestion-du-crud-de-flight)
+- [4. Création et gestion du **CRUD** de `Flight`](#4-création-et-gestion-du-crud-de-flight)
+- [5. Sécurité](#5-sécurité)
+  - [5.1. Entity `User`](#51-entity-user)
+  - [5.2. Systeme guard](#52-systeme-guard)
+    - [5.2.1. Authentification et autorisation](#521-authentification-et-autorisation)
+    - [5.2.2. Fixtures pour User](#522-fixtures-pour-user)
 
 
 
@@ -148,7 +153,7 @@ symfony console doctrine:migrations:migrate
   }
 ```
 
-## 3.5. Création et gestion du CRUD de `Flight`
+# 4. Création et gestion du **CRUD** de `Flight`
 
 1. On tape la commande `symfony console make:crud` qui facilite bien la vie...
 
@@ -171,8 +176,7 @@ symfony console doctrine:migrations:migrate
 
 3. Personnaliser le résultat
 
-Faire appel à Bootstrap
-Pour personnaliser les champs, Form Types Reference :
+Faire appel à Bootstrap pour personnaliser les champs, Form Types Reference :
 https://symfony.com/doc/current/reference/forms/types.html
 
 4. On créé une classe `App\Services\FlightService`
@@ -189,5 +193,112 @@ Le service attribura un numero de vol lors de la création d'un vol.
     {
         $this->flightService = $fs;    
     }
+
+```
+# 5. Sécurité
+
+## 5.1. Entity `User`
+
+```bash
+symfony console make:user
+
+ created: src/Entity/User.php
+ created: src/Repository/UserRepository.php
+ updated: src/Entity/User.php
+ updated: config/packages/security.yaml
+
+symfony console make:migration
+symfony console doctrine:migrations:migrate
+
+```
+
+On ajoute un attribut `$pseudo` et on refait une migration.
+```bash
+$ symfony console make:entity > User > pseudo > string > nullable:false
+```
+
+## 5.2. Systeme guard
+
+### 5.2.1. Authentification et autorisation
+  
+- L'authentification impose un controle des identifiants (email/pswrd) appelé `credentials`.
+- L'autorisation est relative au rôle donné à un user qui va limiter ou pas l'utilisation de l'API.
+
+Creation via : 
+```bash
+$ symfony console make:auth
+
+ What style of authentication do you want? [Empty authenticator]:
+  [0] Empty authenticator
+  [1] Login form authenticator
+ > 1
+1
+
+ The class name of the authenticator to create (e.g. AppCustomAuthenticator):
+ > LoginFormAuthenticator
+
+ Choose a name for the controller class (e.g. SecurityController) [SecurityController]:
+ >
+
+ Do you want to generate a '/logout' URL? (yes/no) [yes]:
+ >
+
+ created: src/Security/LoginFormAuthenticator.php
+ updated: config/packages/security.yaml
+ created: src/Controller/SecurityController.php
+ created: templates/security/login.html.twig
+
+           
+  Success! 
+           
+
+ Next:
+ - Customize your new authenticator.
+ - Finish the redirect "TODO" in the App\Security\LoginFormAuthenticator::onAuthenticationSuccess() method.
+ - Review & adapt the login template: templates/security/login.html.twig.
+```
+
+### 5.2.2. Fixtures pour User
+
+Dans `AppFictures` on ajoute le service `UserPasswordEncoderInterface` :
+
+```php
+
+    private $passwordEncoder;
+
+
+    /**
+     * On injecte un service dans le constructeur de Fixtures
+     *
+     * @param FlightService $fs
+     */
+    function __construct(FlightService $fs, UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->flightService = $fs;
+        $this->passwordEncoder = $passwordEncoder;
+    }
+
+```
+Puis on ajoute du contenu via : 
+
+```php
+        $admin = new User;
+        $pwdcrypted = $this->passwordEncoder->encodePassword($admin, 'secret1');
+        $admin
+            ->setEmail('admin@capitalairways.com')
+            ->setPseudo('Captain')
+            ->setRoles(['ROLE_ADMIN'])
+            ->setPassword($pwdcrypted);
+        $manager->persist($admin);
+
+
+        $user = new User;
+        $pwdcrypted = $this->passwordEncoder->encodePassword($user, 'secret2');
+        $user
+            ->setEmail('macfly@capitalairways.com')
+            ->setPseudo('MacFly')
+            ->setRoles(['ROLE_USER'])
+            ->setPassword($pwdcrypted);
+        $manager->persist($user);
 
 ```
