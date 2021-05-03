@@ -279,7 +279,7 @@ Dans `AppFictures` on ajoute le service `UserPasswordEncoderInterface` :
     }
 
 ```
-Puis on ajoute du contenu via : 
+Puis on ajoute du contenu que l'on va `doctrine:fixtures:load` : 
 
 ```php
         $admin = new User;
@@ -301,4 +301,30 @@ Puis on ajoute du contenu via :
             ->setPassword($pwdcrypted);
         $manager->persist($user);
 
+```
+
+On créé une `navbar.html.twig`, include dans base `{% include "navbar.html.twig" %}` avec un lien Home et Logout.
+
+
+Dans `SecurityController` on applique une route par défault. Tout utilisateur arrive de ce fait sur la page de formulaire de `login.html.twig`.
+```php
+class SecurityController extends AbstractController
+{
+    /**
+     * @Route("/", name="app_login")
+     */
+```
+
+La classe LoginFormAuthenticator gère ensuite l'accès ç la page désirée dans la méthode :
+
+```php
+public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
+    {
+        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
+            return new RedirectResponse($targetPath);
+        }
+
+        return new RedirectResponse($this->urlGenerator->generate('flight_index'));
+        // throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
+    }
 ```
