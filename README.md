@@ -18,6 +18,11 @@
   - [5.2. Systeme guard](#52-systeme-guard)
     - [5.2.1. Authentification et autorisation](#521-authentification-et-autorisation)
     - [5.2.2. Fixtures pour User](#522-fixtures-pour-user)
+    - [5.2.3. Security : un login obligatoire pour l'API](#523-security--un-login-obligatoire-pour-lapi)
+    - [5.2.4. Security : un filtrage de l'API selon le rôle](#524-security--un-filtrage-de-lapi-selon-le-rôle)
+- [6. Bonus de customisation](#6-bonus-de-customisation)
+  - [6.1. Visibilité de la promotion](#61-visibilité-de-la-promotion)
+  - [6.2. Gestion des pages d'Error](#62-gestion-des-pages-derror)
 
 
 
@@ -305,6 +310,7 @@ Puis on ajoute du contenu que l'on va `doctrine:fixtures:load` :
 
 On créé une `navbar.html.twig`, include dans base `{% include "navbar.html.twig" %}` avec un lien Home et Logout.
 
+### 5.2.3. Security : un login obligatoire pour l'API
 
 Dans `SecurityController` on applique une route par défault. Tout utilisateur arrive de ce fait sur la page de formulaire de `login.html.twig`.
 ```php
@@ -315,7 +321,7 @@ class SecurityController extends AbstractController
      */
 ```
 
-La classe LoginFormAuthenticator gère ensuite l'accès ç la page désirée dans la méthode :
+La classe `LoginFormAuthenticator` gère ensuite l'accès à la page désirée dans la méthode :
 
 ```php
 public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
@@ -327,4 +333,97 @@ public function onAuthenticationSuccess(Request $request, TokenInterface $token,
         return new RedirectResponse($this->urlGenerator->generate('flight_index'));
         // throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
     }
+```
+
+### 5.2.4. Security : un filtrage de l'API selon le rôle
+
+
+Dans `FlightController` on peut déjà commencer à filtrer avec `IsGranted` :
+
+```php
+/**
+ * @IsGranted("ROLE_USER")
+ * @Route("/Flight")
+ */
+class FlightController extends AbstractController
+```
+
+Si l'on veut afficher des élèments seulement pour l'admin on applique :
+
+```php
+		{% if is_granted('ROLE_ADMIN') %}
+		{% endif %}
+
+```
+
+Pour permettre à l'utilisateur de voir qu'il est connecté et lui donner la possibilité de se deconnecter, on place dans la Navbar :
+
+```php
+	{% if is_granted('ROLE_USER') %}
+			<li class="nav-item">
+				<a class="nav-link" href=" {{path('app_logout')}} ">Logout
+				</a>
+			</li>
+			<li class="nav-item">
+
+				<span class="">Current
+					{{app.user.pseudo}}
+					connected</span>
+
+			</li>
+
+  {% endif %}
+
+```
+
+# 6. Bonus de customisation
+
+## 6.1. Visibilité de la promotion
+
+```php
+// Dans le template index.html.twig
+  {% if flight.reduction %}
+    <td class="promo">
+      <span class="badge bg-danger text-white">Promo  - 5%</span>
+
+      {{ flight.price - flight.price*5/100 }}
+      €</td>
+  {% else %}
+    <td>{{ flight.price }}
+      €</td>
+  {% endif %}
+
+```
+
+## 6.2. Gestion des pages d'Error
+
+Doc : https://symfony.com/doc/current/controller/error_pages.html
+
+Création du dossier :
+
+      templates/
+      └─ bundles/
+        └─ TwigBundle/
+            └─ Exception/
+              ├─ error404.html.twig
+              ├─ error403.html.twig
+              └─ error.html.twig      # All other HTML errors (including 500)
+
+Contenu du fichier `error404.html.twig` :
+
+```twig
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="jumbotron">
+		<h1 class="display-4">Error 404 !</h1>
+		<p class="lead">Pas not found</p>
+		<hr class="my-4">
+		<p>
+			The requested page couldn't be located. Checkout for any URL
+						        misspelling or
+			<a class="btn btn-outline-info" href="{{ path('flight_index') }}" role="button">Return Accueil</a>
+		</p>
+	</div>
+{% endblock %}
 ```

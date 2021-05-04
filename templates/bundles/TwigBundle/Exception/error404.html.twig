@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="jumbotron">
+		<h1 class="display-4">Error 404 !</h1>
+		<p class="lead">Pas not found</p>
+		<hr class="my-4">
+		<p>
+			The requested page couldn't be located. Checkout for any URL
+						        misspelling or
+			<a class="btn btn-outline-info" href="{{ path('flight_index') }}" role="button">Return Accueil</a>
+		</p>
+	</div>
+{% endblock %}

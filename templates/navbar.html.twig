@@ -11,14 +11,21 @@
 				<a class="nav-link" href=" {{path('flight_index')}} ">All flights
 				</a>
 			</li>
-			<li class="nav-item">
 
-				{# <span class="mr-5">Current
-					{{app.user.pseudo}}
-					connected</span> #}
+			{% if is_granted('ROLE_USER') %}
+			<li class="nav-item">
 				<a class="nav-link" href=" {{path('app_logout')}} ">Logout
 				</a>
 			</li>
+			<li class="nav-item ml-5">
+
+				<span class="nav-link disabled">Currently connected : 
+					{{app.user.pseudo}}
+					</span>
+
+			</li>
+
+			{% endif %}
 
 		</ul>
 	</div>
